@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Simple WebSocket Chat</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="jquery-1.12.4.min.js"></script>
+        <style>
+            body {
+                padding: 40px;
+                background-color: whitesmoke;
+            }
+            td {
+                height: 40px;
+            }
+            span {
+                padding: 8px;
+                border-radius: 5px;
+            }
+            h1 {
+                color: #6363ce;
+            }
+            .time {
+                width: 160px;
+                font-size: 14px;
+                background-color: #cad8de;
+            }
+            .author {
+                width: 160px;
+                font-size: 12px;
+                background-color: #d0f5ff;
+            }
+            #send {
+                padding: 10px;
+                background-color: dodgerblue;
+                color: azure;
+                border: none;
+                font-weight: bold;
+                font-size: 14px;
+                height: 41px;
+            }
+            .msg-content {
+                width: 500px;
+                font-size: 14px;
+                background-color: #b3b5fc;
+            }
+            #response {
+                background-color: #494d53;
+                margin: 5px;
+            }
+            #message {
+                height: 36px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Chat test</h1>
+        <script>
+            var ws = new WebSocket("ws://localhost:2016/chat/join");
+            var message;
+            var send;
+            var response;
+            ws.onopen = function () {
+                message.disable = false;
+                send.disable = false;
+            };
+
+            ws.onmessage = function (evt) {
+                var obj = JSON.parse(evt.data);
+                var date = new Date(obj.timestamp);
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var day = date.getDate();
+                var month = months[date.getMonth()];
+                var year = date.getFullYear();
+                var hours = date.getHours();
+                var minutes = "0" + date.getMinutes();
+                var seconds = "0" + date.getSeconds();
+                var time = day + " " + month + " " + year + " " + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+                var chat = "<tr><td><span class='time'>" + time + "</span></td><td><span class='author'>"
+                        + obj.author + ": </span></td><td><span class='msg-content'>" + obj.content + "</span></td></tr>";
+                response.append(chat);
+            };
+
+            ws.onclose = function () {
+                alert("Closed!");
+            };
+
+            ws.onerror = function (err) {
+                alert("Error: " + err);
+            };
+
+            function sendMessage() {
+                var msg = message.val();
+                message.val("");
+                ws.send(msg);
+            }
+
+
+            $(document).ready(function () {
+                message = $('#message');
+                send = $('#send');
+                response = $('#response');
+
+                send.click(function () {
+                    sendMessage();
+                });
+                message.keyup(function (event) {
+                    if (event.keyCode === 13) {
+                        send.click();
+                    }
+                });
+                message.disable = true;
+                send.disable = true;
+            }
+            );
+        </script>
+        <table id="response"></table>
+        <input type="text" id="message" placeholder="Your message..." />
+        <button  type="submit" id="send">Send</button>
+    </body>
+</html>

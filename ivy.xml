@@ -1,0 +1,8 @@
+<ivy-module version="2.4">
+    <info organisation="com.github.viettd" module="simple-websocket-chat" />
+    <dependencies>
+        <dependency org="org.eclipse.jetty" name="jetty-server" rev="9.3.8.v20160314"/>
+        <dependency org="org.eclipse.jetty.websocket" name="websocket-server" rev="9.3.8.v20160314"/>
+        <dependency org="com.google.code.gson" name="gson" rev="2.6.2"/>
+    </dependencies>
+</ivy-module>
