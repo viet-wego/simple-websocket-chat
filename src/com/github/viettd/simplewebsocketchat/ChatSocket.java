@@ -28,6 +28,11 @@ public class ChatSocket extends WebSocketAdapter {
         ChatSocketServlet.broadCastMessage(message, userName);
     }
 
+    @Override
+    public void onWebSocketClose(int statusCode, String reason) {
+        ChatSocketServlet.removeMember(userName);
+    }
+
     public void sendMessage(String message) {
         if (isConnected()) {
             try {

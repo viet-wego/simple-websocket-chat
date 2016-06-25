@@ -20,23 +20,19 @@ public class ChatSocketServlet extends WebSocketServlet {
 
     private static final Map<String, ChatSocket> SOCKETS = new HashMap<>();
 
-    public static void addMember(ChatSocket socket) {
-        int number = SOCKETS.size() + 1;
-        String userName = "User_" + number;
-        socket.setUserName(userName);
-        SOCKETS.put(userName, socket);
-        String message = userName + " joined.";
-        broadCastMessage(message, "System");
+    private static void sendMessage(ChatSocket socket, String message, String userName) {
+        Message msg = new Message();
+        msg.setAuthor(userName);
+        msg.setContent(message);
+        msg.setTimestamp(Calendar.getInstance().getTimeInMillis());
+        socket.sendMessage(new Gson().toJson(msg));
     }
 
-    public static void broadCastMessage(String message, String userName) {
-        for (ChatSocket socket : SOCKETS.values()) {
-            Message msg = new Message();
-            msg.setAuthor(userName);
-            msg.setContent(message);
-            msg.setTimestamp(Calendar.getInstance().getTimeInMillis());
-            socket.sendMessage(new Gson().toJson(msg));
-        }
+    private static void addSocket(String userName, ChatSocket socket) {
+        socket.setUserName(userName);
+        broadCastMessage(userName + " joined.", "System");
+        SOCKETS.put(userName, socket);
+        sendMessage(socket, String.format("Welcome %s !", userName), "System");
     }
 
     @Override
@@ -44,4 +40,30 @@ public class ChatSocketServlet extends WebSocketServlet {
         factory.getPolicy().setIdleTimeout(24 * 3600 * 1000);
         factory.register(ChatSocket.class);
     }
+
+    public static void addMember(ChatSocket socket) {
+        if (SOCKETS.isEmpty()) {
+            addSocket("User_1", socket);
+        } else {
+            for (int i = 1; i <= SOCKETS.size() + 1; i++) {
+                String userName = String.format("User_%s", i);
+                if (!SOCKETS.containsKey(userName)) {
+                    addSocket(userName, socket);
+                    break;
+                }
+            }
+        }
+    }
+
+    public static void broadCastMessage(String message, String userName) {
+        for (ChatSocket socket : SOCKETS.values()) {
+            sendMessage(socket, message, userName);
+        }
+    }
+
+    public static void removeMember(String userName) {
+        broadCastMessage(userName + " left.", "System");
+        SOCKETS.remove(userName);
+    }
+
 }
